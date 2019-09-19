@@ -38,4 +38,18 @@ export class IdeaController {
     removeIdea(@Param('id') id: string, @User() user){
         return this.ideaService.destroy(id, user.id);
     }
+
+    @Post(':id/bookmark')
+    @UseGuards(new AuthGuard())
+    @UsePipes(new ValidationPipe())
+    bookmarkIdea(@Param('id') id: string, @User() user){
+        return this.ideaService.bookmark(id, user.id);
+    }
+
+    @Delete(':id/bookmark')
+    @UseGuards(new AuthGuard())
+    @UsePipes(new ValidationPipe())
+    unbookmarkIdea(@Param('id') id: string, @User() user){
+        return this.ideaService.unBookmark(id, user.id);
+    }
 }

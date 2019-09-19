@@ -1,4 +1,5 @@
 import { IsString, IsNotEmpty } from 'class-validator';
+import { IdeaEntity } from 'src/idea/idea.entity';
 
 export class UserDTO {
 
@@ -15,4 +16,5 @@ export class UserRO {
     username: string;
     created: Date;
     token?: string;
+    bookmarks?: IdeaEntity[];
 }
