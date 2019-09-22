@@ -4,6 +4,7 @@ import { IdeaEntity } from './idea.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IdeaDTO, IdeaRO } from './idea.dto';
 import { UserEntity } from '../user/user.entity';
+import { Votes } from '../shared/votes.enum';
 
 @Injectable()
 export class IdeaService {
@@ -22,6 +23,30 @@ export class IdeaService {
         if(idea.author.id !== userId){
             throw new HttpException('Incorrect User', HttpStatus.UNAUTHORIZED);
         }
+    }
+
+    private async vote(idea: IdeaEntity, user: UserEntity, vote: Votes){
+        const opposite = vote === Votes.UP ? Votes.DOWN : Votes.UP;
+        if(
+            idea[opposite].filter(voter => voter.id === user.id).length > 0 || 
+            idea[vote].filter(voter => voter.id === user.id).length > 0 
+        ) {
+            //cancel vote (down or up)
+            if(idea[opposite].filter(voter => voter.id === user.id).length > 0){
+                idea[opposite] = idea[opposite].filter(voter => voter.id !== user.id);
+                idea[vote].push(user);
+            } else {
+                idea[vote] = idea[vote].filter(voter => voter.id !== user.id);
+            }
+            await this.ideaRepository.save(idea);
+        } else if (idea[vote].filter(voter => voter.id === user.id).length < 1 ){
+            //add vote to idea
+            idea[vote].push(user);
+            await this.ideaRepository.save(idea);
+        } else {
+            throw new HttpException('Unable to add vote', HttpStatus.BAD_REQUEST);
+        }
+        return idea;
     }
 
     async showAll(): Promise<IdeaRO[]>{
@@ -62,6 +87,20 @@ export class IdeaService {
         }
         this.ensureOwnership(idea, userId);
         await this.ideaRepository.delete({id});
+        return this.toResponseObject(idea);
+    }
+
+    async upvoteIdea(id: string, userId: string){
+        let idea = await this.ideaRepository.findOne({where: {id}, relations: ['author', 'upvotes', 'downvotes']});
+        const user = await this.userRepository.findOne({where: {id: userId}});
+        idea = await this.vote(idea, user, Votes.UP);
+        return this.toResponseObject(idea);
+    }
+
+    async downvoteIdea(id: string, userId: string){
+        let idea = await this.ideaRepository.findOne({where: {id}, relations: ['author', 'upvotes', 'downvotes']});
+        const user = await this.userRepository.findOne({where: {id: userId}});
+        idea = await this.vote(idea, user, Votes.DOWN);
         return this.toResponseObject(idea);
     }
 

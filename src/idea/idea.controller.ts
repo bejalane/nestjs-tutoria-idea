@@ -39,11 +39,18 @@ export class IdeaController {
         return this.ideaService.destroy(id, user.id);
     }
 
-    @Post(':id/bookmark')
+    @Post(':id/upvote')
     @UseGuards(new AuthGuard())
     @UsePipes(new ValidationPipe())
-    bookmarkIdea(@Param('id') id: string, @User() user){
-        return this.ideaService.bookmark(id, user.id);
+    upvoteIdea(@Param('id') id: string, @User() user){
+        return this.ideaService.upvoteIdea(id, user.id);
+    }
+
+    @Post(':id/downvote')
+    @UseGuards(new AuthGuard())
+    @UsePipes(new ValidationPipe())
+    downvoteIdea(@Param('id') id: string, @User() user){
+        return this.ideaService.downvoteIdea(id, user.id);
     }
 
     @Delete(':id/bookmark')
