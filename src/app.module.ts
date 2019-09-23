@@ -7,6 +7,7 @@ import { HttpErrorFilter } from './shared/http-error.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerInterceptor } from './shared/logger.interceptor';
 import { UserModule } from './user/user.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
     }),
     IdeaModule,
     UserModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [
