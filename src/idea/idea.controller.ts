@@ -5,13 +5,18 @@ import { IdeaDTO } from './idea.dto';
 import { AuthGuard } from '../shared/auth.guard';
 import { User } from '../user/user.decorator';
 import { getRoute } from '../shared/request.helper';
+import { paginationSettings } from '../shared/pagination.helper';
 
 @Controller('api/idea')
 export class IdeaController {
     constructor(private ideaService: IdeaService){}
 
     @Get()
-    showAllIdeas(@Query('page') page: number = 0, @Query('limit') limit: number = 10, @Request() req){
+    showAllIdeas(
+        @Query('page') page: number = 0, 
+        @Query('limit') limit: number = paginationSettings.limit,
+        @Request() req
+    ){
         return this.ideaService.showAll({page, limit, route: getRoute(req)});
     }
 

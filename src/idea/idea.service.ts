@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { IdeaEntity } from './idea.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IdeaDTO, IdeaRO, IdeasRO } from './idea.dto';
+import { IdeaDTO, IdeaRO, IdeaPaginatedRO } from './idea.dto';
 import { UserEntity } from '../user/user.entity';
 import { Votes } from '../shared/votes.enum';
 import {paginate, Pagination, IPaginationOptions} from 'nestjs-typeorm-paginate';
@@ -16,13 +16,18 @@ export class IdeaService {
         private userRepository: Repository<UserEntity>
     ){}
 
-    private pagingSettings = {
-        perPage: 3
-    }
-
     private toResponseObject(idea: IdeaEntity): IdeaRO{
         return {...idea, author: idea.author.toResposeObject(false)}
     }
+
+    private toPaginatedResponseObject(result: Pagination<IdeaEntity>): IdeaPaginatedRO{
+        return {
+            ...result,
+            items: result.items.map(idea => this.toResponseObject(idea))
+        }
+    }
+
+    
 
     private ensureOwnership(idea: IdeaEntity, userId: string){
         if(idea.author.id !== userId){
@@ -70,8 +75,9 @@ export class IdeaService {
     //     }
     // }
 
-    async showAll(options: IPaginationOptions): Promise<Pagination<IdeaEntity>>{
-        return await paginate<IdeaEntity>(this.ideaRepository, options, {relations: ['author', 'upvotes', 'downvotes', 'comments']});
+    async showAll(options: IPaginationOptions): Promise<IdeaPaginatedRO>{
+        const results = await paginate<IdeaEntity>(this.ideaRepository, options, {relations: ['author', 'upvotes', 'downvotes', 'comments'], order: {createdDate: 'DESC'}});
+        return this.toPaginatedResponseObject(results);
     }
 
     async create(userId: string, data: IdeaDTO): Promise<IdeaRO>{

@@ -1,6 +1,7 @@
 import { IsString } from 'class-validator';
 import { UserRO } from '../user/user.dto';
 import { UserEntity } from '../user/user.entity';
+import { PaginationClass } from '../shared/pagination.helper';
 
 export class IdeaDTO {
     @IsString()
@@ -21,7 +22,6 @@ export class IdeaRO {
     downvotes?: UserEntity[];
 }
 
-export class IdeasRO {
-    ideas: IdeaRO[];
-    count: number;
+export class IdeaPaginatedRO extends PaginationClass {
+    items: IdeaRO[];
 }
