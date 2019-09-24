@@ -2,9 +2,10 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { IdeaEntity } from './idea.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IdeaDTO, IdeaRO } from './idea.dto';
+import { IdeaDTO, IdeaRO, IdeasRO } from './idea.dto';
 import { UserEntity } from '../user/user.entity';
 import { Votes } from '../shared/votes.enum';
+import {paginate, Pagination, IPaginationOptions} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class IdeaService {
@@ -14,6 +15,10 @@ export class IdeaService {
         @InjectRepository(UserEntity)
         private userRepository: Repository<UserEntity>
     ){}
+
+    private pagingSettings = {
+        perPage: 3
+    }
 
     private toResponseObject(idea: IdeaEntity): IdeaRO{
         return {...idea, author: idea.author.toResposeObject(false)}
@@ -49,9 +54,24 @@ export class IdeaService {
         return idea;
     }
 
-    async showAll(): Promise<IdeaRO[]>{
-        const ideas = await this.ideaRepository.find({relations: ['author', 'upvotes', 'downvotes', 'comments']});
-        return ideas.map(idea => this.toResponseObject(idea));
+    // async showAll(page: number = 1): Promise<IdeasRO>{
+    //     const perPage = this.pagingSettings.perPage;
+    //     const ideas = await this.ideaRepository.find({
+    //         relations: ['author', 'upvotes', 'downvotes', 'comments'],
+    //         take: perPage,
+    //         skip: perPage * (page - 1),
+    //         order: {createdDate: 'DESC'}
+    //     });
+    //     const total = 1;
+
+    //     return {
+    //         ideas: ideas.map(idea => this.toResponseObject(idea)),
+    //         count: total
+    //     }
+    // }
+
+    async showAll(options: IPaginationOptions): Promise<Pagination<IdeaEntity>>{
+        return await paginate<IdeaEntity>(this.ideaRepository, options, {relations: ['author', 'upvotes', 'downvotes', 'comments']});
     }
 
     async create(userId: string, data: IdeaDTO): Promise<IdeaRO>{

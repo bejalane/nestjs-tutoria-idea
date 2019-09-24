@@ -20,3 +20,8 @@ export class IdeaRO {
     upvotes?: UserEntity[];
     downvotes?: UserEntity[];
 }
+
+export class IdeasRO {
+    ideas: IdeaRO[];
+    count: number;
+}
