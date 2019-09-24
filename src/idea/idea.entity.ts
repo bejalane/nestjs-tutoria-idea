@@ -1,36 +1,45 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToMany, ManyToOne, UpdateDateColumn, JoinTable, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToMany,
+  ManyToOne,
+  UpdateDateColumn,
+  JoinTable,
+  OneToMany,
+} from 'typeorm';
 import { UserEntity } from '../user/user.entity';
 import { CommentEntity } from '../comment/comment.entity';
 
 @Entity('idea')
 export class IdeaEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @PrimaryGeneratedColumn('uuid') 
-    id: string;
+  @Column('text')
+  idea: string;
 
-    @Column('text') 
-    idea: string;
+  @Column('text')
+  description: string;
 
-    @Column('text') 
-    description: string;
+  @CreateDateColumn()
+  createdDate: Date;
 
-    @CreateDateColumn() 
-    createdDate: Date;
+  @UpdateDateColumn()
+  updated: Date;
 
-    @UpdateDateColumn()
-    updated: Date;
+  @ManyToOne(type => UserEntity, author => author.ideas)
+  author: UserEntity;
 
-    @ManyToOne(type => UserEntity, author => author.ideas)
-    author: UserEntity;
+  @ManyToMany(type => UserEntity, { cascade: true })
+  @JoinTable()
+  upvotes: UserEntity[];
 
-    @ManyToMany(type => UserEntity, {cascade: true})
-    @JoinTable()
-    upvotes: UserEntity[];
+  @ManyToMany(type => UserEntity, { cascade: true })
+  @JoinTable()
+  downvotes: UserEntity[];
 
-    @ManyToMany(type => UserEntity, {cascade: true})
-    @JoinTable()
-    downvotes: UserEntity[];
-
-    @OneToMany(type => CommentEntity, comment => comment.idea, {cascade: true})
-    comments: CommentEntity[];
+  @OneToMany(type => CommentEntity, comment => comment.idea, { cascade: true })
+  comments: CommentEntity[];
 }

@@ -1,58 +1,72 @@
-import { Entity, PrimaryGeneratedColumn, CreateDateColumn, Column, BeforeInsert, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  Column,
+  BeforeInsert,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { UserRO } from "./user.dto";
-import { IdeaEntity } from "../idea/idea.entity";
+import { UserRO } from './user.dto';
+import { IdeaEntity } from '../idea/idea.entity';
 
 @Entity('user')
 export class UserEntity {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @CreateDateColumn()
-    created: Date;
+  @CreateDateColumn()
+  created: Date;
 
-    @Column({ length: 255, unique: true })
-    username: string;
+  @Column({ length: 255, unique: true })
+  username: string;
 
-    @Column('text')
-    password: string;
+  @Column('text')
+  password: string;
 
-    @OneToMany(type => IdeaEntity, idea => idea.author)
-    ideas: IdeaEntity[];
+  @OneToMany(type => IdeaEntity, idea => idea.author)
+  ideas: IdeaEntity[];
 
-    @ManyToMany(type => IdeaEntity, {cascade: true})
-    @JoinTable()
-    bookmarks: IdeaEntity[]
+  @ManyToMany(type => IdeaEntity, { cascade: true })
+  @JoinTable()
+  bookmarks: IdeaEntity[];
 
-    @BeforeInsert()
-    async hashPassword(){
-        this.password = await bcrypt.hash(this.password, 10);
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+
+  toResponseObject(showToken: boolean = true): UserRO {
+    const { id, created, username, token } = this;
+    const responseObject: any = { id, created, username };
+    if (showToken) {
+      responseObject.token = token;
     }
-
-    toResposeObject(showToken: boolean  = true): UserRO {
-        const {id, created, username, token} = this;
-        const responseObject: any = {id, created, username };
-        if(showToken){
-            responseObject.token = token;
-        }
-        if(this.ideas){
-            responseObject.ideas = this.ideas;
-        }
-        if(this.bookmarks){
-            responseObject.bookmarks = this.bookmarks;
-        }
-        return responseObject;
+    if (this.ideas) {
+      responseObject.ideas = this.ideas;
     }
-
-    comparePassword(attempt: string){
-        return bcrypt.compare(attempt, this.password);
+    if (this.bookmarks) {
+      responseObject.bookmarks = this.bookmarks;
     }
+    return responseObject;
+  }
 
-    private get token(){
-        const {id, username} = this;
-        return jwt.sign({
-            id, username
-        }, process.env.SECRET, {expiresIn: '7d'})
-    }
+  comparePassword(attempt: string) {
+    return bcrypt.compare(attempt, this.password);
+  }
+
+  private get token() {
+    const { id, username } = this;
+    return jwt.sign(
+      {
+        id,
+        username,
+      },
+      process.env.SECRET,
+      { expiresIn: '7d' },
+    );
+  }
 }
